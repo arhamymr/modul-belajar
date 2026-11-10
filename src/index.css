@@ -1,0 +1,79 @@
+@import "tailwindcss";
+
+html, body, #root {
+  background-color: #ffffff;
+  color: #0f172a;
+}
+
+/* Custom Styling for Educational Markdown Content in White Theme */
+.markdown-body {
+  @apply text-slate-800 leading-relaxed text-sm;
+}
+
+.markdown-body h2 {
+  @apply text-lg sm:text-xl font-extrabold text-slate-900 mt-6 mb-3 pb-2 border-b border-slate-200 flex items-center gap-2;
+}
+
+.markdown-body h3 {
+  @apply text-base sm:text-lg font-bold text-slate-900 mt-5 mb-2.5;
+}
+
+.markdown-body h4 {
+  @apply text-sm sm:text-base font-semibold text-slate-900 mt-4 mb-2;
+}
+
+.markdown-body p {
+  @apply mb-3.5 leading-relaxed text-slate-700;
+}
+
+.markdown-body strong {
+  @apply font-bold text-slate-900;
+}
+
+.markdown-body ul {
+  @apply list-disc list-outside pl-5 mb-4 space-y-1.5 text-slate-700;
+}
+
+.markdown-body ol {
+  @apply list-decimal list-outside pl-5 mb-4 space-y-1.5 text-slate-700;
+}
+
+.markdown-body li {
+  @apply leading-relaxed;
+}
+
+.markdown-body blockquote {
+  @apply border-l-4 border-sky-500 bg-sky-50/70 p-3.5 my-4 rounded-r-xl text-slate-700 text-xs sm:text-sm italic;
+}
+
+.markdown-body table {
+  @apply w-full text-left border-collapse my-5 text-xs sm:text-sm rounded-xl overflow-hidden shadow-xs border border-slate-200;
+}
+
+.markdown-body thead {
+  @apply bg-slate-100 text-slate-900 font-bold border-b border-slate-200;
+}
+
+.markdown-body th {
+  @apply px-3.5 py-2.5 font-semibold tracking-wider text-slate-900;
+}
+
+.markdown-body td {
+  @apply px-3.5 py-2.5 border-t border-slate-200 text-slate-700;
+}
+
+.markdown-body tr:nth-child(even) {
+  @apply bg-slate-50/70;
+}
+
+.markdown-body pre {
+  @apply p-4 my-4 rounded-2xl bg-slate-50 text-slate-900 overflow-x-auto text-xs font-mono leading-relaxed border border-slate-200 shadow-xs;
+}
+
+.markdown-body code:not(pre code) {
+  @apply px-1.5 py-0.5 rounded-md bg-sky-50 text-sky-800 font-mono text-xs font-medium border border-sky-200;
+}
+
+.markdown-body hr {
+  @apply my-6 border-t border-slate-200;
+}

@@ -1,0 +1,8 @@
+{
+  "name": "Remix Remix E-Modul Informatika SMA Interaktif",
+  "description": "Sistem Informasi Web E-Modul Pembelajaran Informatika SMA Fase E (Kelas X) Kurikulum Merdeka dengan 6 elemen capaian pembelajaran (BK, AP, SK, JKI, AD, DSI), modul materi mendalam, video tutorial interaktif, latihan soal AKM/HOTS, simulator, dan rapor otomatis.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
