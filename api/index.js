@@ -2461,8 +2461,8 @@ app.use("/api", apiRouter);
 app.use(apiRouter);
 var app_default = app;
 
-// api/index.ts
-var index_default = app_default;
+// server/apiHandler.ts
+var apiHandler_default = app_default;
 export {
-  index_default as default
+  apiHandler_default as default
 };

@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import Markdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
+import rehypeRaw from 'rehype-raw';
 import { 
   ArrowLeft, 
   BookOpen, 
@@ -580,7 +582,7 @@ export const ModuleReader: React.FC<ModuleReaderProps> = ({
                 {/* Markdown-styled Content Body */}
                 <div className="prose prose-slate max-w-none text-xs sm:text-sm leading-relaxed text-slate-700 space-y-4">
                   <div className="markdown-body">
-                    <Markdown>{activeSection?.content}</Markdown>
+                    <Markdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]}>{activeSection?.content}</Markdown>
                   </div>
                 </div>
 

@@ -103,15 +103,13 @@ Pernahkah kamu merasa bingung saat menghadapi tugas sekolah yang menumpuk atau i
 | **3. Abstraksi** | *"Informasi mana yang paling penting untuk diperhatikan?"* | Saat membuat denah sekolah, kita hanya menggambar letak ruang kelas dan gerbang, tanpa perlu menggambar setiap daun di pohon. | Menulis biodata siswa: mencatat nama dan kelas, tanpa perlu mencatat warna sepatu atau merk pensil. |
 | **4. Algoritma** | *"Bagaimana urutan langkah demi langkah yang benar?"* | Resep membuat mie instan: merebus air -> memasukkan mie 3 menit -> menuang bumbu di piring -> mengaduk rata. | Langkah menyalakan komputer: menekan tombol power CPU -> menekan tombol layar monitor -> menunggu sampai desktop muncul. |
 
----
-
 ### 3 Syarat Langkah Algoritma yang Baik:
 
 | No | Syarat Algoritma | Penjelasan & Karakteristik | Contoh Penerapan Nyata |
 | :---: | :--- | :--- | :--- |
-| **1** | **Pasti dan Jelas (*Definiteness*)** | Setiap instruksi tidak menimbulkan makna ganda (*ambigu*) dan dapat dieksekusi dengan tepat. | *"Tambahkan 1 sendok teh garam"*, bukan *"Tambahkan sedikit garam seikhlasnya"*. |
-| **2** | **Urut dan Teratur (*Ordered Steps*)** | Langkah instruksi tersusun logis dan berurutan dari awal sampai akhir. | Kita tidak bisa memakai sepatu sebelum memakai kaus kaki terlebih dahulu! |
-| **3** | **Pasti Selesai (*Finiteness*)** | Rangkaian langkah harus berhenti dan mencapai hasil akhir, tidak mengalami perulangan tanpa henti (*infinite loop*). | Merebus mie instan selama 3 menit lalu kompor dimatikan, bukan direbus selamanya tanpa akhir. |`,
+| **1** | **Pasti dan Jelas**<br>*(Definiteness)* | Setiap instruksi tidak menimbulkan makna ganda (*ambigu*) dan dapat dieksekusi dengan tepat. | *"Tambahkan 1 sendok teh garam"*, bukan *"Tambahkan sedikit garam seikhlasnya"*. |
+| **2** | **Urut dan Teratur**<br>*(Ordered Steps)* | Langkah instruksi tersusun logis dan berurutan dari awal sampai akhir. | Kita tidak bisa memakai sepatu sebelum memakai kaus kaki terlebih dahulu! |
+| **3** | **Pasti Selesai**<br>*(Finiteness)* | Rangkaian langkah harus berhenti dan mencapai hasil akhir, tidak mengalami perulangan tanpa henti (*infinite loop*). | Merebus mie instan selama 3 menit lalu kompor dimatikan, bukan direbus selamanya tanpa akhir. |`,
       realWorldAnalogy: {
         title: 'Mempersiapkan Ransel Sekolah di Malam Hari',
         story: 'Setiap malam sebelum tidur, Rian mempersiapkan tas sekolahnya dengan cerdas. Pertama (Dekomposisi), ia membagi perlengkapan menjadi tiga kelompok: buku pelajaran, alat tulis, dan kotak bekal. Kedua (Pengenalan Pola), ia mengingat bahwa jadwal hari Selasa selalu ada pelajaran PJOK, sehingga baju olahraga wajib dibawa. Ketiga (Abstraksi), ia memeriksa jadwal dan hanya memasukkan buku pelajaran hari Selasa, membiarkan buku hari lain di rumah agar beban tas tidak berlebih. Keempat (Algoritma), ia menata barang secara terstruktur: buku di kompartemen utama, tempat pensil di saku depan, dan botol minum di saku samping.',
