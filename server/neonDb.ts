@@ -157,89 +157,110 @@ export async function initNeonDatabase(customUrl?: string) {
     );
   `;
 
-  // Seed default teacher if table is empty
-  const teacherRows = await sql`SELECT count(*)::int as count FROM teachers`;
-  if ((teacherRows[0]?.count || 0) === 0) {
-    await sql`
-      INSERT INTO teachers (
-        id, name, nip, email, password, school, title, subject, teaching_classes, avatar, phone, last_login, registered_at
-      ) VALUES (
-        'guru-1789732655854',
-        'ULFA NAHDA, S.Pd.',
-        '199604132019032006',
-        'ulfanahda34@guru.sma.belajar.id',
-        '13April96',
-        'UPTD SMAN 2 BUDONG BUDONG',
-        'Guru Pengampu Informatika (SMA)',
-        'Informatika SMA',
-        '["Kelas X-1", "Kelas X-2", "Kelas X-3", "Kelas X-4"]'::jsonb,
-        '',
-        '',
-        'Baru saja',
-        NOW()
-      ) ON CONFLICT (id) DO NOTHING;
-    `;
+  // Check if starter data has already been seeded before
+  let alreadySeeded = false;
+  try {
+    const seedRows = await sql`SELECT value FROM app_meta WHERE key = 'starter_seeded'`;
+    alreadySeeded = seedRows.length > 0 && seedRows[0]?.value === 'true';
+  } catch (e) {
+    alreadySeeded = false;
   }
 
-  // Seed default student if empty
-  const studentRows = await sql`SELECT count(*)::int as count FROM students`;
-  if ((studentRows[0]?.count || 0) === 0) {
-    await sql`
-      INSERT INTO students (
-        id, name, nisn, email, password, school, class_grade, avatar, xp, level,
-        completed_modules, badges, saved_notes, quiz_history, history_attempts, bookmarked_questions, registered_at
-      ) VALUES (
-        'student-demo-1',
-        'Muhammad Rizki Pratama',
-        '0081234567',
-        'rizki.pratama@siswa.belajar.id',
-        'password123',
-        'SMA Negeri 1 Edukasi',
-        'Kelas X-1',
-        '',
-        650,
-        2,
-        '["mod-1"]'::jsonb,
-        '[{"id":"badge-1","title":"Penjelajah Algoritma","description":"Tuntas menyelesaikan modul Berpikir Komputasional","icon":"Sparkles","earnedDate":"12 Jan 2026"}]'::jsonb,
-        '[]'::jsonb,
-        '[]'::jsonb,
-        '[]'::jsonb,
-        '[]'::jsonb,
-        NOW()
-      ) ON CONFLICT (id) DO NOTHING;
-    `;
+  if (!alreadySeeded) {
+    // Seed default teacher if table is empty
+    const teacherRows = await sql`SELECT count(*)::int as count FROM teachers`;
+    if ((teacherRows[0]?.count || 0) === 0) {
+      await sql`
+        INSERT INTO teachers (
+          id, name, nip, email, password, school, title, subject, teaching_classes, avatar, phone, last_login, registered_at
+        ) VALUES (
+          'guru-1789732655854',
+          'ULFA NAHDA, S.Pd.',
+          '199604132019032006',
+          'ulfanahda34@guru.sma.belajar.id',
+          '13April96',
+          'UPTD SMAN 2 BUDONG BUDONG',
+          'Guru Pengampu Informatika (SMA)',
+          'Informatika SMA',
+          '["Kelas X-1", "Kelas X-2", "Kelas X-3", "Kelas X-4"]'::jsonb,
+          '',
+          '',
+          'Baru saja',
+          NOW()
+        ) ON CONFLICT (id) DO NOTHING;
+      `;
+    }
 
-    await sql`
-      INSERT INTO teacher_students_summary (
-        id, name, nisn, class_grade, completed_modules_count, average_score, attempts_count, kktp_status, last_active, element_performance
-      ) VALUES (
-        'student-demo-1',
-        'Muhammad Rizki Pratama',
-        '0081234567',
-        'Kelas X-1',
-        1,
-        88,
-        2,
-        'Sangat Mahir',
-        'Kemarin, 14:20 WIB',
-        '{"BK":92,"AP":85,"SK":88,"JKI":84,"AD":90,"DSI":89}'::jsonb
-      ) ON CONFLICT (id) DO NOTHING;
-    `;
-  }
+    // Seed default student if empty
+    const studentRows = await sql`SELECT count(*)::int as count FROM students`;
+    if ((studentRows[0]?.count || 0) === 0) {
+      await sql`
+        INSERT INTO students (
+          id, name, nisn, email, password, school, class_grade, avatar, xp, level,
+          completed_modules, badges, saved_notes, quiz_history, history_attempts, bookmarked_questions, registered_at
+        ) VALUES (
+          'student-demo-1',
+          'Muhammad Rizki Pratama',
+          '0081234567',
+          'rizki.pratama@siswa.belajar.id',
+          'password123',
+          'SMA Negeri 1 Edukasi',
+          'Kelas X-1',
+          '',
+          650,
+          2,
+          '["mod-1"]'::jsonb,
+          '[{"id":"badge-1","title":"Penjelajah Algoritma","description":"Tuntas menyelesaikan modul Berpikir Komputasional","icon":"Sparkles","earnedDate":"12 Jan 2026"}]'::jsonb,
+          '[]'::jsonb,
+          '[]'::jsonb,
+          '[]'::jsonb,
+          '[]'::jsonb,
+          NOW()
+        ) ON CONFLICT (id) DO NOTHING;
+      `;
 
-  // Seed default announcement if empty
-  const annRows = await sql`SELECT count(*)::int as count FROM announcements`;
-  if ((annRows[0]?.count || 0) === 0) {
-    await sql`
-      INSERT INTO announcements (id, teacher_id, author, text, date)
-      VALUES (
-        'ann-demo-1',
-        'guru-demo-1',
-        'Drs. Hendra Kusuma, M.Kom.',
-        'Selamat datang di E-Modul Informatika SMA. Silakan pelajari Modul 1 (Berpikir Komputasional) dan selesaikan kuis evaluasi untuk mengklaim sertifikat.',
-        '15 Januari 2026'
-      ) ON CONFLICT (id) DO NOTHING;
-    `;
+      await sql`
+        INSERT INTO teacher_students_summary (
+          id, name, nisn, class_grade, completed_modules_count, average_score, attempts_count, kktp_status, last_active, element_performance
+        ) VALUES (
+          'student-demo-1',
+          'Muhammad Rizki Pratama',
+          '0081234567',
+          'Kelas X-1',
+          1,
+          88,
+          2,
+          'Sangat Mahir',
+          'Kemarin, 14:20 WIB',
+          '{"BK":92,"AP":85,"SK":88,"JKI":84,"AD":90,"DSI":89}'::jsonb
+        ) ON CONFLICT (id) DO NOTHING;
+      `;
+    }
+
+    // Seed default announcement if empty
+    const annRows = await sql`SELECT count(*)::int as count FROM announcements`;
+    if ((annRows[0]?.count || 0) === 0) {
+      await sql`
+        INSERT INTO announcements (id, teacher_id, author, text, date)
+        VALUES (
+          'ann-demo-1',
+          'guru-demo-1',
+          'Drs. Hendra Kusuma, M.Kom.',
+          'Selamat datang di E-Modul Informatika SMA. Silakan pelajari Modul 1 (Berpikir Komputasional) dan selesaikan kuis evaluasi untuk mengklaim sertifikat.',
+          '15 Januari 2026'
+        ) ON CONFLICT (id) DO NOTHING;
+      `;
+    }
+
+    try {
+      await sql`
+        INSERT INTO app_meta (key, value, updated_at)
+        VALUES ('starter_seeded', 'true', NOW())
+        ON CONFLICT (key) DO UPDATE SET value = 'true', updated_at = NOW();
+      `;
+    } catch (e) {
+      // ignore
+    }
   }
 }
 
@@ -449,8 +470,15 @@ export async function upsertStudent(student: any) {
 
 export async function deleteStudentById(id: string) {
   const sql = getNeonClient();
-  await sql`DELETE FROM students WHERE id = ${id}`;
-  await sql`DELETE FROM teacher_students_summary WHERE id = ${id}`;
+  const rows = await sql`SELECT nisn FROM students WHERE id = ${id} LIMIT 1`;
+  const nisn = rows[0]?.nisn;
+  if (nisn) {
+    await sql`DELETE FROM students WHERE id = ${id} OR nisn = ${nisn}`;
+    await sql`DELETE FROM teacher_students_summary WHERE id = ${id} OR nisn = ${nisn}`;
+  } else {
+    await sql`DELETE FROM students WHERE id = ${id}`;
+    await sql`DELETE FROM teacher_students_summary WHERE id = ${id}`;
+  }
   await sql`DELETE FROM quiz_attempts WHERE student_id = ${id}`;
   await sql`DELETE FROM notes WHERE student_id = ${id}`;
   return { success: true };
@@ -511,6 +539,19 @@ export async function upsertTeacher(teacher: any) {
   return await getTeacherById(id);
 }
 
+export async function deleteTeacherById(id: string) {
+  const sql = getNeonClient();
+  const rows = await sql`SELECT nip FROM teachers WHERE id = ${id} LIMIT 1`;
+  const nip = rows[0]?.nip;
+  if (nip) {
+    await sql`DELETE FROM teachers WHERE id = ${id} OR nip = ${nip}`;
+  } else {
+    await sql`DELETE FROM teachers WHERE id = ${id}`;
+  }
+  await sql`DELETE FROM announcements WHERE teacher_id = ${id}`;
+  return { success: true };
+}
+
 // Quiz Attempts
 export async function getAllQuizAttempts(studentId?: string, moduleId?: string) {
   const sql = getNeonClient();
@@ -527,6 +568,7 @@ export async function getAllQuizAttempts(studentId?: string, moduleId?: string) 
   }
 
   return rows.map(r => ({
+    id: r.id,
     attemptId: r.id,
     studentId: r.student_id,
     studentName: r.student_name,
@@ -547,7 +589,7 @@ export async function getAllQuizAttempts(studentId?: string, moduleId?: string) 
 
 export async function saveQuizAttempt(attempt: any, studentProfile?: any) {
   const sql = getNeonClient();
-  const id = attempt.attemptId || `attempt-${Date.now()}`;
+  const id = attempt.id || attempt.attemptId || `attempt-${Date.now()}`;
   const studentId = attempt.studentId || studentProfile?.id || "guest";
   const studentName = attempt.studentName || studentProfile?.name || "Siswa";
   const studentClass = attempt.studentClass || studentProfile?.classGrade || "Kelas X";

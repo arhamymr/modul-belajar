@@ -69,10 +69,10 @@ export default function App() {
   // Persistent Teachers & Students List
   const [teachersList, setTeachersList] = useState<TeacherProfile[]>(() => {
     const saved = localStorage.getItem('emodul_teachers_list');
-    if (saved) {
+    if (saved !== null) {
       try {
         const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+        if (Array.isArray(parsed)) return parsed;
       } catch (e) {
         console.error(e);
       }
@@ -82,10 +82,10 @@ export default function App() {
 
   const [studentsList, setStudentsList] = useState<StudentProfile[]>(() => {
     const saved = localStorage.getItem('emodul_students_list');
-    if (saved) {
+    if (saved !== null) {
       try {
         const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+        if (Array.isArray(parsed)) return parsed;
       } catch (e) {
         console.error(e);
       }
@@ -102,33 +102,37 @@ export default function App() {
   // Active Teacher Profile
   const [teacher, setTeacher] = useState<TeacherProfile | null>(() => {
     const saved = localStorage.getItem('emodul_active_teacher');
-    if (saved) {
+    if (saved !== null) {
       try {
-        return JSON.parse(saved);
+        const parsed = JSON.parse(saved);
+        if (parsed && parsed.id) return parsed;
+        return null;
       } catch (e) {
         console.error(e);
       }
     }
-    return INITIAL_TEACHER_PROFILES[0];
+    return INITIAL_TEACHER_PROFILES[0] || null;
   });
 
   // Active Student Profile
   const [student, setStudent] = useState<StudentProfile>(() => {
     const saved = localStorage.getItem('emodul_student_profile');
-    if (saved) {
+    if (saved !== null) {
       try {
         const parsed = JSON.parse(saved);
-        return {
-          ...INITIAL_STUDENT_PROFILE,
-          ...parsed,
-          completedModules: Array.isArray(parsed?.completedModules) ? parsed.completedModules : INITIAL_STUDENT_PROFILE.completedModules,
-          badges: Array.isArray(parsed?.badges) ? parsed.badges : INITIAL_STUDENT_PROFILE.badges,
-          savedNotes: Array.isArray(parsed?.savedNotes) ? parsed.savedNotes : INITIAL_STUDENT_PROFILE.savedNotes,
-          quizHistory: Array.isArray(parsed?.quizHistory) ? parsed.quizHistory : (Array.isArray(parsed?.historyAttempts) ? parsed.historyAttempts : INITIAL_STUDENT_PROFILE.quizHistory),
-          historyAttempts: Array.isArray(parsed?.historyAttempts) ? parsed.historyAttempts : (Array.isArray(parsed?.quizHistory) ? parsed.quizHistory : INITIAL_STUDENT_PROFILE.historyAttempts),
-          bookmarkedQuestions: Array.isArray(parsed?.bookmarkedQuestions) ? parsed.bookmarkedQuestions : INITIAL_STUDENT_PROFILE.bookmarkedQuestions,
-          level: typeof parsed?.level === 'number' ? parsed.level : Math.floor((parsed?.xp || INITIAL_STUDENT_PROFILE.xp) / 500) + 1,
-        };
+        if (parsed && parsed.id) {
+          return {
+            ...INITIAL_STUDENT_PROFILE,
+            ...parsed,
+            completedModules: Array.isArray(parsed?.completedModules) ? parsed.completedModules : INITIAL_STUDENT_PROFILE.completedModules,
+            badges: Array.isArray(parsed?.badges) ? parsed.badges : INITIAL_STUDENT_PROFILE.badges,
+            savedNotes: Array.isArray(parsed?.savedNotes) ? parsed.savedNotes : INITIAL_STUDENT_PROFILE.savedNotes,
+            quizHistory: Array.isArray(parsed?.quizHistory) ? parsed.quizHistory : (Array.isArray(parsed?.historyAttempts) ? parsed.historyAttempts : INITIAL_STUDENT_PROFILE.quizHistory),
+            historyAttempts: Array.isArray(parsed?.historyAttempts) ? parsed.historyAttempts : (Array.isArray(parsed?.quizHistory) ? parsed.quizHistory : INITIAL_STUDENT_PROFILE.historyAttempts),
+            bookmarkedQuestions: Array.isArray(parsed?.bookmarkedQuestions) ? parsed.bookmarkedQuestions : INITIAL_STUDENT_PROFILE.bookmarkedQuestions,
+            level: typeof parsed?.level === 'number' ? parsed.level : Math.floor((parsed?.xp || INITIAL_STUDENT_PROFILE.xp) / 500) + 1,
+          };
+        }
       } catch (e) {
         console.error(e);
       }
@@ -148,7 +152,7 @@ export default function App() {
 
         if (!isMounted) return;
 
-        if (teachersFromDb && teachersFromDb.length > 0) {
+        if (Array.isArray(teachersFromDb)) {
           const cleaned = teachersFromDb.filter(t => t.id !== 'guru-demo-1' && !t.name.toLowerCase().includes('hendra kusuma'));
           const seen = new Set<string>();
           const unique = cleaned.filter(t => {
@@ -157,24 +161,28 @@ export default function App() {
             seen.add(key);
             return true;
           });
-          const finalList = unique.length > 0 ? unique : INITIAL_TEACHER_PROFILES;
-          setTeachersList(finalList);
+          setTeachersList(unique);
           try {
-            localStorage.setItem('emodul_teachers_list', JSON.stringify(finalList));
+            localStorage.setItem('emodul_teachers_list', JSON.stringify(unique));
           } catch (e) {
             console.error(e);
           }
-          if (finalList.length > 0) {
-            setTeacher(finalList[0]);
+          if (unique.length > 0) {
+            setTeacher(prev => (prev && unique.find(t => t.id === prev.id)) || unique[0]);
             try {
-              localStorage.setItem('emodul_active_teacher', JSON.stringify(finalList[0]));
+              localStorage.setItem('emodul_active_teacher', JSON.stringify((teacher && unique.find(t => t.id === teacher.id)) || unique[0]));
             } catch (e) {
               console.error(e);
             }
+          } else {
+            setTeacher(null);
+            try {
+              localStorage.removeItem('emodul_active_teacher');
+            } catch (e) {}
           }
         }
 
-        if (studentsFromDb && studentsFromDb.length > 0) {
+        if (Array.isArray(studentsFromDb)) {
           const seen = new Set<string>();
           const unique = studentsFromDb.filter(s => {
             const key = (s.nisn || s.name).toLowerCase().trim();
@@ -190,7 +198,14 @@ export default function App() {
           }
           if (student?.id) {
             const freshStudent = unique.find(s => s.id === student.id);
-            if (freshStudent) setStudent(freshStudent);
+            if (freshStudent) {
+              setStudent(freshStudent);
+            } else {
+              setStudent(INITIAL_STUDENT_PROFILE);
+              try {
+                localStorage.removeItem('emodul_student_profile');
+              } catch (e) {}
+            }
           }
         }
       } catch (err) {
@@ -210,21 +225,26 @@ export default function App() {
   }, [currentRole]);
 
   useEffect(() => {
-    localStorage.setItem('emodul_student_profile', JSON.stringify(student));
-    // Also update current student in studentsList
-    setStudentsList(prev => prev.map(s => s.id === student.id ? student : s));
-    if (student.id && student.name) {
+    if (student && student.id && student.name) {
+      localStorage.setItem('emodul_student_profile', JSON.stringify(student));
+      setStudentsList(prev => {
+        const exists = prev.some(s => s.id === student.id);
+        if (!exists) return prev;
+        return prev.map(s => s.id === student.id ? student : s);
+      });
       sqliteService.saveStudent(student);
     }
   }, [student]);
 
   useEffect(() => {
-    if (teacher) {
+    if (teacher && teacher.id && teacher.name) {
       localStorage.setItem('emodul_active_teacher', JSON.stringify(teacher));
-      setTeachersList(prev => prev.map(t => t.id === teacher.id ? teacher : t));
-      if (teacher.id && teacher.name) {
-        sqliteService.saveTeacher(teacher);
-      }
+      setTeachersList(prev => {
+        const exists = prev.some(t => t.id === teacher.id);
+        if (!exists) return prev;
+        return prev.map(t => t.id === teacher.id ? teacher : t);
+      });
+      sqliteService.saveTeacher(teacher);
     }
   }, [teacher]);
 
@@ -440,10 +460,19 @@ export default function App() {
     }
   };
 
-  const handleDeleteStudent = (id: string) => {
-    sqliteService.deleteStudent(id);
+  const handleDeleteStudent = async (id: string) => {
+    try {
+      await Promise.all([
+        sqliteService.deleteStudent(id),
+        sqliteService.deleteTeacherStudentSummary(id),
+      ]);
+    } catch (e) {
+      console.error('Error deleting student from DB:', e);
+    }
+
     setStudentsList(prev => {
-      const updated = prev.filter(s => s.id !== id);
+      const targetStudent = prev.find(s => s.id === id);
+      const updated = prev.filter(s => s.id !== id && (!targetStudent?.nisn || s.nisn !== targetStudent.nisn));
       try {
         localStorage.setItem('emodul_students_list', JSON.stringify(updated));
       } catch (e) {
@@ -480,9 +509,16 @@ export default function App() {
     });
   };
 
-  const handleDeleteTeacher = (id: string) => {
+  const handleDeleteTeacher = async (id: string) => {
+    try {
+      await sqliteService.deleteTeacher(id);
+    } catch (e) {
+      console.error('Error deleting teacher from DB:', e);
+    }
+
     setTeachersList(prev => {
-      const updated = prev.filter(t => t.id !== id);
+      const targetTeacher = prev.find(t => t.id === id);
+      const updated = prev.filter(t => t.id !== id && (!targetTeacher?.nip || t.nip !== targetTeacher.nip));
       try {
         localStorage.setItem('emodul_teachers_list', JSON.stringify(updated));
       } catch (e) {
@@ -491,15 +527,22 @@ export default function App() {
       return updated;
     });
 
-    // If the active teacher was deleted, reset active teacher profile to default
+    // If the active teacher was deleted, set to remaining teacher or null
     setTeacher(prev => {
-      if (prev && prev.id === id) {
+      const targetTeacher = teachersList.find(t => t.id === id);
+      if (prev && (prev.id === id || (prev.nip && targetTeacher?.nip === prev.nip))) {
+        const remaining = teachersList.filter(t => t.id !== id && (!targetTeacher?.nip || t.nip !== targetTeacher.nip));
+        const nextTeacher = remaining.length > 0 ? remaining[0] : null;
         try {
-          localStorage.setItem('emodul_active_teacher', JSON.stringify(INITIAL_TEACHER_PROFILES[0]));
+          if (nextTeacher) {
+            localStorage.setItem('emodul_active_teacher', JSON.stringify(nextTeacher));
+          } else {
+            localStorage.removeItem('emodul_active_teacher');
+          }
         } catch (e) {
           console.error(e);
         }
-        return INITIAL_TEACHER_PROFILES[0];
+        return nextTeacher;
       }
       return prev;
     });
@@ -657,7 +700,7 @@ export default function App() {
         sqliteService.getStudents(),
       ]);
 
-      if (teachersFromDb && teachersFromDb.length > 0) {
+      if (Array.isArray(teachersFromDb)) {
         const cleaned = teachersFromDb.filter(t => t.id !== 'guru-demo-1' && !t.name.toLowerCase().includes('hendra kusuma'));
         const seen = new Set<string>();
         const unique = cleaned.filter(t => {
@@ -666,16 +709,18 @@ export default function App() {
           seen.add(key);
           return true;
         });
-        const finalList = unique.length > 0 ? unique : INITIAL_TEACHER_PROFILES;
-        setTeachersList(finalList);
-        localStorage.setItem('emodul_teachers_list', JSON.stringify(finalList));
-        if (finalList.length > 0) {
-          setTeacher(finalList[0]);
-          localStorage.setItem('emodul_active_teacher', JSON.stringify(finalList[0]));
+        setTeachersList(unique);
+        localStorage.setItem('emodul_teachers_list', JSON.stringify(unique));
+        if (unique.length > 0) {
+          setTeacher(prev => (prev && unique.find(t => t.id === prev.id)) || unique[0]);
+          localStorage.setItem('emodul_active_teacher', JSON.stringify(unique[0]));
+        } else {
+          setTeacher(null);
+          localStorage.removeItem('emodul_active_teacher');
         }
       }
 
-      if (studentsFromDb && studentsFromDb.length > 0) {
+      if (Array.isArray(studentsFromDb)) {
         const seen = new Set<string>();
         const unique = studentsFromDb.filter(s => {
           const key = (s.nisn || s.name).toLowerCase().trim();

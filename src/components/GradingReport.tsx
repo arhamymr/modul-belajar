@@ -170,7 +170,7 @@ export const GradingReport: React.FC<GradingReportProps> = ({
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {Object.entries(attempt.elementScores).map(([key, data]) => {
+          {(Object.entries(attempt.elementScores) as [string, { correct: number; total: number; percentage: number }][]).map(([key, data]) => {
             const el = INFORMATICS_ELEMENTS[key];
             if (!el || data.total === 0) return null;
 

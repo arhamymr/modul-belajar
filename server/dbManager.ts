@@ -189,6 +189,17 @@ export async function upsertTeacher(teacher: any) {
   return sqliteResult;
 }
 
+export async function deleteTeacherById(id: string) {
+  if (isUsingNeon()) {
+    try {
+      await neon.deleteTeacherById(id);
+    } catch (e) {
+      console.warn("[DB] Neon error deleting teacher:", e);
+    }
+  }
+  return sqlite.deleteTeacherById(id);
+}
+
 // Quiz Attempts
 export async function getAllQuizAttempts(studentId?: string, moduleId?: string) {
   if (isUsingNeon()) {

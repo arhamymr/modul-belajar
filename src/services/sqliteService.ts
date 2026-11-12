@@ -142,6 +142,17 @@ export const sqliteService = {
     }
   },
 
+  async deleteTeacher(id: string): Promise<boolean> {
+    try {
+      const res = await fetch(`/api/teachers/${encodeURIComponent(id)}`, {
+        method: 'DELETE',
+      });
+      return res.ok;
+    } catch (e) {
+      return false;
+    }
+  },
+
   // Quiz Attempts
   async getQuizAttempts(studentId?: string, moduleId?: string): Promise<QuizAttempt[]> {
     try {

@@ -125,8 +125,16 @@ export function initSQLiteDatabase() {
   seedInitialData();
 }
 
-// Seed initial default demo data if empty
-function seedInitialData() {
+// Seed initial default demo data if empty and not previously seeded
+function seedInitialData(force = false) {
+  try {
+    const isSeeded = (db.prepare("SELECT value FROM app_meta WHERE key = 'starter_seeded'").get() as any)?.value;
+    if (isSeeded && !force) {
+      return;
+    }
+  } catch (e) {
+    // If app_meta is not queryable yet, continue
+  }
   const teacherCount = (db.prepare("SELECT count(*) as count FROM teachers").get() as any)?.count || 0;
   if (teacherCount === 0) {
     const insertTeacher = db.prepare(`
@@ -236,6 +244,12 @@ function seedInitialData() {
       '15 Januari 2026',
       new Date().toISOString()
     );
+  }
+
+  try {
+    db.prepare("INSERT OR REPLACE INTO app_meta (key, value, updated_at) VALUES ('starter_seeded', 'true', ?)").run(new Date().toISOString());
+  } catch (e) {
+    // ignore
   }
 }
 
@@ -380,8 +394,14 @@ export function upsertStudent(student: any) {
 }
 
 export function deleteStudentById(id: string) {
-  db.prepare("DELETE FROM students WHERE id = ?").run(id);
-  db.prepare("DELETE FROM teacher_students_summary WHERE id = ?").run(id);
+  const student = db.prepare("SELECT nisn FROM students WHERE id = ?").get(id) as any;
+  if (student?.nisn) {
+    db.prepare("DELETE FROM students WHERE id = ? OR nisn = ?").run(id, student.nisn);
+    db.prepare("DELETE FROM teacher_students_summary WHERE id = ? OR nisn = ?").run(id, student.nisn);
+  } else {
+    db.prepare("DELETE FROM students WHERE id = ?").run(id);
+    db.prepare("DELETE FROM teacher_students_summary WHERE id = ?").run(id);
+  }
   db.prepare("DELETE FROM quiz_attempts WHERE student_id = ?").run(id);
   db.prepare("DELETE FROM notes WHERE student_id = ?").run(id);
   return { success: true };
@@ -464,6 +484,17 @@ export function upsertTeacher(teacher: any) {
   return getTeacherById(teacher.id);
 }
 
+export function deleteTeacherById(id: string) {
+  const teacher = db.prepare("SELECT nip FROM teachers WHERE id = ?").get(id) as any;
+  if (teacher?.nip) {
+    db.prepare("DELETE FROM teachers WHERE id = ? OR nip = ?").run(id, teacher.nip);
+  } else {
+    db.prepare("DELETE FROM teachers WHERE id = ?").run(id);
+  }
+  db.prepare("DELETE FROM announcements WHERE teacher_id = ?").run(id);
+  return { success: true };
+}
+
 // Quiz Attempts Queries
 export function getAllQuizAttempts(studentId?: string, moduleId?: string) {
   let sql = "SELECT * FROM quiz_attempts WHERE 1=1";
@@ -482,6 +513,7 @@ export function getAllQuizAttempts(studentId?: string, moduleId?: string) {
   const rows = db.prepare(sql).all(...params) as any[];
 
   return rows.map(r => ({
+    id: r.id,
     attemptId: r.id,
     studentId: r.student_id,
     studentName: r.student_name,
@@ -501,7 +533,7 @@ export function getAllQuizAttempts(studentId?: string, moduleId?: string) {
 }
 
 export function saveQuizAttempt(attempt: any, studentProfile?: any) {
-  const id = attempt.attemptId || `attempt-${Date.now()}`;
+  const id = attempt.id || attempt.attemptId || `attempt-${Date.now()}`;
   const now = new Date().toISOString();
 
   const insert = db.prepare(`
@@ -756,6 +788,6 @@ export function resetDatabase() {
     DELETE FROM teacher_students_summary;
     DELETE FROM app_meta;
   `);
-  seedInitialData();
+  seedInitialData(true);
   return { success: true, message: "Database SQLite berhasil di-reset ke data awal" };
 }

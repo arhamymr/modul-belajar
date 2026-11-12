@@ -58,7 +58,7 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
 }) => {
   const [students, setStudents] = useState<TeacherStudentSummary[]>(() => {
     const saved = localStorage.getItem('emodul_teacher_students_summary');
-    if (saved) {
+    if (saved !== null) {
       try {
         const parsed = JSON.parse(saved);
         if (Array.isArray(parsed)) {
@@ -182,10 +182,10 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
         if (!isMounted) return;
         if (status) setSqliteStatus(status);
         if (unified) setDbStatus(unified);
-        if (summaries && summaries.length > 0) {
+        if (Array.isArray(summaries)) {
           setStudents(summaries);
         }
-        if (anns && anns.length > 0) {
+        if (Array.isArray(anns)) {
           setAnnouncements(anns);
         }
       } catch (e) {
@@ -206,9 +206,9 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
       if (status) setSqliteStatus(status);
       if (unified) setDbStatus(unified);
       const summaries = await sqliteService.getTeacherStudentSummaries();
-      if (summaries && summaries.length > 0) setStudents(summaries);
+      if (Array.isArray(summaries)) setStudents(summaries);
       const anns = await sqliteService.getAnnouncements();
-      if (anns && anns.length > 0) setAnnouncements(anns);
+      if (Array.isArray(anns)) setAnnouncements(anns);
 
       const engineName = unified?.activeEngine === 'neon' ? 'Neon PostgreSQL (Cloud)' : 'SQLite Server (data/emodul.sqlite)';
       setToastMessage(`Data berhasil disinkronkan langsung dari basis data aktif: ${engineName}`);

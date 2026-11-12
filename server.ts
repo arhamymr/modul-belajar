@@ -1,5 +1,6 @@
 import express from "express";
 import path from "path";
+import net from "net";
 import { spawn } from "child_process";
 import { createServer as createViteServer } from "vite";
 import { GoogleGenAI } from "@google/genai";
@@ -15,6 +16,7 @@ import {
   getAllTeachers,
   getTeacherById,
   upsertTeacher,
+  deleteTeacherById,
   getAllQuizAttempts,
   saveQuizAttempt,
   getNotes,
@@ -36,7 +38,6 @@ dotenv.config();
 initAppDatabase().catch(err => console.error("[DB] Boot error:", err));
 
 const app = express();
-const PORT = 3000;
 
 app.use(express.json());
 
@@ -74,7 +75,7 @@ app.get("/api/db/status", async (req, res) => {
 });
 
 // Test Neon connection string directly
-app.post("/api/neon/test", async (req, res) => {
+app.post(["/api/neon/test", "/api/db/test-neon"], async (req, res) => {
   try {
     const { connectionString } = req.body;
     const result = await testNeonConnection(connectionString);
@@ -85,7 +86,7 @@ app.post("/api/neon/test", async (req, res) => {
 });
 
 // One-click migrate SQLite records to Neon
-app.post("/api/neon/migrate", async (req, res) => {
+app.post(["/api/neon/migrate", "/api/db/migrate-to-neon"], async (req, res) => {
   try {
     const { connectionString } = req.body;
     const result = await migrateSQLiteToNeon(connectionString);
@@ -185,6 +186,15 @@ app.put("/api/teachers/:id", async (req, res) => {
   try {
     const teacher = await upsertTeacher({ ...req.body, id: req.params.id });
     res.json(teacher);
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.delete("/api/teachers/:id", async (req, res) => {
+  try {
+    const result = await deleteTeacherById(req.params.id);
+    res.json(result);
   } catch (error: any) {
     res.status(500).json({ error: error.message });
   }
@@ -715,8 +725,59 @@ app.post("/api/ai/generate-question", async (req, res) => {
   }
 });
 
+function getRequestedPort(): number {
+  const args = process.argv.slice(2);
+  for (let i = 0; i < args.length; i++) {
+    const arg = args[i];
+    if (arg === "-p" || arg === "--port") {
+      const val = parseInt(args[i + 1], 10);
+      if (!isNaN(val) && val > 0 && val < 65536) return val;
+    } else if (arg.startsWith("-p=")) {
+      const val = parseInt(arg.slice(3), 10);
+      if (!isNaN(val) && val > 0 && val < 65536) return val;
+    } else if (arg.startsWith("--port=")) {
+      const val = parseInt(arg.slice(7), 10);
+      if (!isNaN(val) && val > 0 && val < 65536) return val;
+    }
+  }
+  if (process.env.PORT) {
+    const envPort = parseInt(process.env.PORT, 10);
+    if (!isNaN(envPort) && envPort > 0 && envPort < 65536) return envPort;
+  }
+  return 3000;
+}
+
+function checkPortAvailable(port: number, host = "0.0.0.0"): Promise<boolean> {
+  return new Promise((resolve) => {
+    const tester = net.createServer()
+      .once("error", () => resolve(false))
+      .once("listening", () => {
+        tester.once("close", () => resolve(true)).close();
+      })
+      .listen(port, host);
+  });
+}
+
+async function resolveAvailablePort(preferredPort: number, maxAttempts = 30): Promise<number> {
+  let port = preferredPort;
+  for (let i = 0; i < maxAttempts; i++) {
+    const available = await checkPortAvailable(port);
+    if (available) {
+      if (port !== preferredPort) {
+        console.warn(`[Server] Port ${preferredPort} is in use. Automatically switched to port ${port}.`);
+      }
+      return port;
+    }
+    port++;
+  }
+  return preferredPort;
+}
+
 // Vite middleware & start server
 async function start() {
+  const requestedPort = getRequestedPort();
+  const PORT = await resolveAvailablePort(requestedPort);
+
   if (process.env.NODE_ENV !== "production") {
     const vite = await createViteServer({
       server: { middlewareMode: true },
@@ -731,8 +792,16 @@ async function start() {
     });
   }
 
-  app.listen(PORT, "0.0.0.0", () => {
+  const server = app.listen(PORT, "0.0.0.0", () => {
     console.log(`E-Modul Informatika Server running on http://localhost:${PORT}`);
+  });
+
+  server.on("error", (err: NodeJS.ErrnoException) => {
+    if (err.code === "EADDRINUSE") {
+      console.error(`[Server] Port ${PORT} is already in use.`);
+    } else {
+      console.error("[Server] Error:", err);
+    }
   });
 }
 
