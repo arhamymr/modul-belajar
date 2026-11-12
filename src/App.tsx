@@ -152,7 +152,7 @@ export default function App() {
 
         if (!isMounted) return;
 
-        if (Array.isArray(teachersFromDb)) {
+        if (Array.isArray(teachersFromDb) && teachersFromDb.length > 0) {
           const cleaned = teachersFromDb.filter(t => t.id !== 'guru-demo-1' && !t.name.toLowerCase().includes('hendra kusuma'));
           const seen = new Set<string>();
           const unique = cleaned.filter(t => {
@@ -161,28 +161,23 @@ export default function App() {
             seen.add(key);
             return true;
           });
-          setTeachersList(unique);
-          try {
-            localStorage.setItem('emodul_teachers_list', JSON.stringify(unique));
-          } catch (e) {
-            console.error(e);
-          }
           if (unique.length > 0) {
+            setTeachersList(unique);
+            try {
+              localStorage.setItem('emodul_teachers_list', JSON.stringify(unique));
+            } catch (e) {
+              console.error(e);
+            }
             setTeacher(prev => (prev && unique.find(t => t.id === prev.id)) || unique[0]);
             try {
               localStorage.setItem('emodul_active_teacher', JSON.stringify((teacher && unique.find(t => t.id === teacher.id)) || unique[0]));
             } catch (e) {
               console.error(e);
             }
-          } else {
-            setTeacher(null);
-            try {
-              localStorage.removeItem('emodul_active_teacher');
-            } catch (e) {}
           }
         }
 
-        if (Array.isArray(studentsFromDb)) {
+        if (Array.isArray(studentsFromDb) && studentsFromDb.length > 0) {
           const seen = new Set<string>();
           const unique = studentsFromDb.filter(s => {
             const key = (s.nisn || s.name).toLowerCase().trim();
@@ -190,21 +185,18 @@ export default function App() {
             seen.add(key);
             return true;
           });
-          setStudentsList(unique);
-          try {
-            localStorage.setItem('emodul_students_list', JSON.stringify(unique));
-          } catch (e) {
-            console.error(e);
-          }
-          if (student?.id) {
-            const freshStudent = unique.find(s => s.id === student.id);
-            if (freshStudent) {
-              setStudent(freshStudent);
-            } else {
-              setStudent(INITIAL_STUDENT_PROFILE);
-              try {
-                localStorage.removeItem('emodul_student_profile');
-              } catch (e) {}
+          if (unique.length > 0) {
+            setStudentsList(unique);
+            try {
+              localStorage.setItem('emodul_students_list', JSON.stringify(unique));
+            } catch (e) {
+              console.error(e);
+            }
+            if (student?.id) {
+              const freshStudent = unique.find(s => s.id === student.id);
+              if (freshStudent) {
+                setStudent(freshStudent);
+              }
             }
           }
         }
@@ -700,7 +692,7 @@ export default function App() {
         sqliteService.getStudents(),
       ]);
 
-      if (Array.isArray(teachersFromDb)) {
+      if (Array.isArray(teachersFromDb) && teachersFromDb.length > 0) {
         const cleaned = teachersFromDb.filter(t => t.id !== 'guru-demo-1' && !t.name.toLowerCase().includes('hendra kusuma'));
         const seen = new Set<string>();
         const unique = cleaned.filter(t => {
@@ -709,18 +701,15 @@ export default function App() {
           seen.add(key);
           return true;
         });
-        setTeachersList(unique);
-        localStorage.setItem('emodul_teachers_list', JSON.stringify(unique));
         if (unique.length > 0) {
+          setTeachersList(unique);
+          localStorage.setItem('emodul_teachers_list', JSON.stringify(unique));
           setTeacher(prev => (prev && unique.find(t => t.id === prev.id)) || unique[0]);
           localStorage.setItem('emodul_active_teacher', JSON.stringify(unique[0]));
-        } else {
-          setTeacher(null);
-          localStorage.removeItem('emodul_active_teacher');
         }
       }
 
-      if (Array.isArray(studentsFromDb)) {
+      if (Array.isArray(studentsFromDb) && studentsFromDb.length > 0) {
         const seen = new Set<string>();
         const unique = studentsFromDb.filter(s => {
           const key = (s.nisn || s.name).toLowerCase().trim();
@@ -728,8 +717,16 @@ export default function App() {
           seen.add(key);
           return true;
         });
-        setStudentsList(unique);
-        localStorage.setItem('emodul_students_list', JSON.stringify(unique));
+        if (unique.length > 0) {
+          setStudentsList(unique);
+          localStorage.setItem('emodul_students_list', JSON.stringify(unique));
+          if (student?.id) {
+            const freshStudent = unique.find(s => s.id === student.id);
+            if (freshStudent) {
+              setStudent(freshStudent);
+            }
+          }
+        }
       }
     } catch (e) {
       console.warn('Sync cloud accounts error:', e);

@@ -1,19 +1,68 @@
-import { DatabaseSync } from "node:sqlite";
 import path from "node:path";
 import fs from "node:fs";
+import { createRequire } from "node:module";
 
-// Ensure data directory exists
-const dataDir = path.join(process.cwd(), "data");
-if (!fs.existsSync(dataDir)) {
-  fs.mkdirSync(dataDir, { recursive: true });
+const requireFunc = typeof require !== "undefined" ? require : createRequire(path.join(process.cwd(), "package.json"));
+
+let _dbInstance: any = null;
+let _sqliteAvailable: boolean | null = null;
+
+function getDbInstance() {
+  if (_sqliteAvailable === false) return null;
+  if (_dbInstance) return _dbInstance;
+
+  try {
+    const { DatabaseSync } = requireFunc("node:sqlite");
+    if (!DatabaseSync) {
+      _sqliteAvailable = false;
+      return null;
+    }
+
+    let dataDir = path.join(process.cwd(), "data");
+    if (process.env.VERCEL) {
+      dataDir = path.join("/tmp", "data");
+    }
+
+    try {
+      if (!fs.existsSync(dataDir)) {
+        fs.mkdirSync(dataDir, { recursive: true });
+      }
+    } catch {
+      dataDir = path.join("/tmp", "data");
+      if (!fs.existsSync(dataDir)) {
+        fs.mkdirSync(dataDir, { recursive: true });
+      }
+    }
+
+    const dbPath = path.join(dataDir, "emodul.sqlite");
+    _dbInstance = new DatabaseSync(dbPath);
+    _dbInstance.exec("PRAGMA journal_mode = WAL;");
+    _dbInstance.exec("PRAGMA foreign_keys = ON;");
+    _sqliteAvailable = true;
+    return _dbInstance;
+  } catch (err: any) {
+    console.warn("[SQLite] SQLite storage unavailable in this environment:", err?.message);
+    _sqliteAvailable = false;
+    return null;
+  }
 }
 
-const dbPath = path.join(dataDir, "emodul.sqlite");
-export const db = new DatabaseSync(dbPath);
-
-// Enable WAL mode for high performance concurrency & enforce foreign keys
-db.exec("PRAGMA journal_mode = WAL;");
-db.exec("PRAGMA foreign_keys = ON;");
+export const db: any = new Proxy({}, {
+  get(target, prop) {
+    const instance = getDbInstance();
+    if (!instance) {
+      if (prop === "exec") return () => {};
+      if (prop === "prepare") return () => ({
+        get: () => null,
+        all: () => [],
+        run: () => ({ changes: 0, lastInsertRowid: 0 })
+      });
+      return () => {};
+    }
+    const val = instance[prop];
+    return typeof val === "function" ? val.bind(instance) : val;
+  }
+});
 
 // Initialize Database Schemas
 export function initSQLiteDatabase() {
@@ -750,7 +799,16 @@ export function deleteTeacherStudentSummary(id: string) {
 
 // Database Diagnostics & Status
 export function getDatabaseStatus() {
-  const stat = fs.statSync(dbPath);
+  const instance = getDbInstance();
+  let fileSize = 0;
+  try {
+    const dataDir = process.env.VERCEL ? path.join("/tmp", "data") : path.join(process.cwd(), "data");
+    const dbPath = path.join(dataDir, "emodul.sqlite");
+    if (fs.existsSync(dbPath)) {
+      fileSize = fs.statSync(dbPath).size;
+    }
+  } catch {}
+
   const studentsCount = (db.prepare("SELECT count(*) as count FROM students").get() as any)?.count || 0;
   const teachersCount = (db.prepare("SELECT count(*) as count FROM teachers").get() as any)?.count || 0;
   const attemptsCount = (db.prepare("SELECT count(*) as count FROM quiz_attempts").get() as any)?.count || 0;
@@ -759,11 +817,11 @@ export function getDatabaseStatus() {
   const summaryCount = (db.prepare("SELECT count(*) as count FROM teacher_students_summary").get() as any)?.count || 0;
 
   return {
-    engine: "SQLite 3 (Node.js 22 Native DatabaseSync)",
+    engine: "SQLite 3 (Node.js Native DatabaseSync)",
     file: "data/emodul.sqlite",
-    connected: true,
-    fileSizeBytes: stat.size,
-    fileSizeKB: Math.round(stat.size / 1024),
+    connected: instance !== null,
+    fileSizeBytes: fileSize,
+    fileSizeKB: Math.round(fileSize / 1024),
     journalMode: "WAL (Write-Ahead Logging)",
     tables: {
       students: studentsCount,

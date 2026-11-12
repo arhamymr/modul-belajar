@@ -2,6 +2,7 @@ import * as sqlite from "./sqliteDb";
 import * as neon from "./neonDb";
 
 let neonInitialized = false;
+let initPromise: Promise<void> | null = null;
 
 // Initialize appropriate database on boot
 export async function initAppDatabase() {
@@ -26,6 +27,15 @@ export async function initAppDatabase() {
   } else {
     console.log("[DB] SQLite persistent database active. Ready for Neon DATABASE_URL.");
   }
+}
+
+export function ensureDatabaseReady(): Promise<void> {
+  if (!initPromise) {
+    initPromise = initAppDatabase().catch(err => {
+      console.error("[DB] Database initialization error:", err);
+    });
+  }
+  return initPromise;
 }
 
 export function isUsingNeon(): boolean {
@@ -130,23 +140,24 @@ export async function getStudentById(id: string) {
 }
 
 export async function upsertStudent(student: any) {
-  // Always update SQLite as local backup
-  const sqliteResult = sqlite.upsertStudent(student);
-
   if (isUsingNeon()) {
     try {
-      return await neon.upsertStudent(student);
+      const neonRes = await neon.upsertStudent(student);
+      try { sqlite.upsertStudent(student); } catch {}
+      return neonRes;
     } catch (e) {
       console.warn("[DB] Neon error writing student:", e);
     }
   }
-  return sqliteResult;
+  return sqlite.upsertStudent(student);
 }
 
 export async function deleteStudentById(id: string) {
   if (isUsingNeon()) {
     try {
       await neon.deleteStudentById(id);
+      try { sqlite.deleteStudentById(id); } catch {}
+      return { success: true };
     } catch (e) {
       console.warn("[DB] Neon error deleting student:", e);
     }
@@ -178,21 +189,24 @@ export async function getTeacherById(id: string) {
 }
 
 export async function upsertTeacher(teacher: any) {
-  const sqliteResult = sqlite.upsertTeacher(teacher);
   if (isUsingNeon()) {
     try {
-      return await neon.upsertTeacher(teacher);
+      const neonRes = await neon.upsertTeacher(teacher);
+      try { sqlite.upsertTeacher(teacher); } catch {}
+      return neonRes;
     } catch (e) {
       console.warn("[DB] Neon error writing teacher:", e);
     }
   }
-  return sqliteResult;
+  return sqlite.upsertTeacher(teacher);
 }
 
 export async function deleteTeacherById(id: string) {
   if (isUsingNeon()) {
     try {
       await neon.deleteTeacherById(id);
+      try { sqlite.deleteTeacherById(id); } catch {}
+      return { success: true };
     } catch (e) {
       console.warn("[DB] Neon error deleting teacher:", e);
     }
@@ -213,15 +227,16 @@ export async function getAllQuizAttempts(studentId?: string, moduleId?: string) 
 }
 
 export async function saveQuizAttempt(attempt: any, studentProfile?: any) {
-  const sqliteResult = sqlite.saveQuizAttempt(attempt, studentProfile);
   if (isUsingNeon()) {
     try {
-      return await neon.saveQuizAttempt(attempt, studentProfile);
+      const res = await neon.saveQuizAttempt(attempt, studentProfile);
+      try { sqlite.saveQuizAttempt(attempt, studentProfile); } catch {}
+      return res;
     } catch (e) {
       console.warn("[DB] Neon error writing quiz attempt:", e);
     }
   }
-  return sqliteResult;
+  return sqlite.saveQuizAttempt(attempt, studentProfile);
 }
 
 // Notes
@@ -237,21 +252,24 @@ export async function getNotes(studentId?: string, moduleId?: string) {
 }
 
 export async function saveNote(note: any) {
-  const sqliteResult = sqlite.saveNote(note);
   if (isUsingNeon()) {
     try {
-      return await neon.saveNote(note);
+      const res = await neon.saveNote(note);
+      try { sqlite.saveNote(note); } catch {}
+      return res;
     } catch (e) {
       console.warn("[DB] Neon error writing note:", e);
     }
   }
-  return sqliteResult;
+  return sqlite.saveNote(note);
 }
 
 export async function deleteNote(id: string) {
   if (isUsingNeon()) {
     try {
       await neon.deleteNote(id);
+      try { sqlite.deleteNote(id); } catch {}
+      return { success: true };
     } catch (e) {
       console.warn("[DB] Neon error deleting note:", e);
     }
@@ -272,21 +290,24 @@ export async function getAnnouncements() {
 }
 
 export async function saveAnnouncement(ann: any) {
-  const sqliteResult = sqlite.saveAnnouncement(ann);
   if (isUsingNeon()) {
     try {
-      return await neon.saveAnnouncement(ann);
+      const res = await neon.saveAnnouncement(ann);
+      try { sqlite.saveAnnouncement(ann); } catch {}
+      return res;
     } catch (e) {
       console.warn("[DB] Neon error writing announcement:", e);
     }
   }
-  return sqliteResult;
+  return sqlite.saveAnnouncement(ann);
 }
 
 export async function deleteAnnouncement(id: string) {
   if (isUsingNeon()) {
     try {
       await neon.deleteAnnouncement(id);
+      try { sqlite.deleteAnnouncement(id); } catch {}
+      return { success: true };
     } catch (e) {
       console.warn("[DB] Neon error deleting announcement:", e);
     }
@@ -307,21 +328,24 @@ export async function getTeacherStudentSummaries() {
 }
 
 export async function upsertTeacherStudentSummary(summary: any) {
-  const sqliteResult = sqlite.upsertTeacherStudentSummary(summary);
   if (isUsingNeon()) {
     try {
-      return await neon.upsertTeacherStudentSummary(summary);
+      const res = await neon.upsertTeacherStudentSummary(summary);
+      try { sqlite.upsertTeacherStudentSummary(summary); } catch {}
+      return res;
     } catch (e) {
       console.warn("[DB] Neon error writing summary:", e);
     }
   }
-  return sqliteResult;
+  return sqlite.upsertTeacherStudentSummary(summary);
 }
 
 export async function deleteTeacherStudentSummary(id: string) {
   if (isUsingNeon()) {
     try {
       await neon.deleteTeacherStudentSummary(id);
+      try { sqlite.deleteTeacherStudentSummary(id); } catch {}
+      return { success: true };
     } catch (e) {
       console.warn("[DB] Neon error deleting summary:", e);
     }

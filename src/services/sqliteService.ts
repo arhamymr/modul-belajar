@@ -99,8 +99,8 @@ export const sqliteService = {
       if (!res.ok) throw new Error('Failed to save student');
       return await res.json();
     } catch (e) {
-      console.warn('SQLite saveStudent error:', e);
-      return null;
+      console.warn('SQLite saveStudent fallback:', e);
+      return student;
     }
   },
 
@@ -137,8 +137,8 @@ export const sqliteService = {
       if (!res.ok) throw new Error('Failed to save teacher');
       return await res.json();
     } catch (e) {
-      console.warn('SQLite saveTeacher error:', e);
-      return null;
+      console.warn('SQLite saveTeacher fallback:', e);
+      return teacher;
     }
   },
 
