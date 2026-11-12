@@ -140,9 +140,7 @@ export async function getStudentById(id: string) {
 export async function upsertStudent(student: any) {
   if (isUsingNeon()) {
     try {
-      const neonRes = await neon.upsertStudent(student);
-      try { sqlite.upsertStudent(student); } catch {}
-      return neonRes;
+      return await neon.upsertStudent(student);
     } catch (e) {
       console.warn("[DB] Neon error writing student:", e);
     }
@@ -154,7 +152,6 @@ export async function deleteStudentById(id: string) {
   if (isUsingNeon()) {
     try {
       await neon.deleteStudentById(id);
-      try { sqlite.deleteStudentById(id); } catch {}
       return { success: true };
     } catch (e) {
       console.warn("[DB] Neon error deleting student:", e);
@@ -189,9 +186,7 @@ export async function getTeacherById(id: string) {
 export async function upsertTeacher(teacher: any) {
   if (isUsingNeon()) {
     try {
-      const neonRes = await neon.upsertTeacher(teacher);
-      try { sqlite.upsertTeacher(teacher); } catch {}
-      return neonRes;
+      return await neon.upsertTeacher(teacher);
     } catch (e) {
       console.warn("[DB] Neon error writing teacher:", e);
     }
@@ -203,7 +198,6 @@ export async function deleteTeacherById(id: string) {
   if (isUsingNeon()) {
     try {
       await neon.deleteTeacherById(id);
-      try { sqlite.deleteTeacherById(id); } catch {}
       return { success: true };
     } catch (e) {
       console.warn("[DB] Neon error deleting teacher:", e);
@@ -227,9 +221,7 @@ export async function getAllQuizAttempts(studentId?: string, moduleId?: string) 
 export async function saveQuizAttempt(attempt: any, studentProfile?: any) {
   if (isUsingNeon()) {
     try {
-      const res = await neon.saveQuizAttempt(attempt, studentProfile);
-      try { sqlite.saveQuizAttempt(attempt, studentProfile); } catch {}
-      return res;
+      return await neon.saveQuizAttempt(attempt, studentProfile);
     } catch (e) {
       console.warn("[DB] Neon error writing quiz attempt:", e);
     }
@@ -252,9 +244,7 @@ export async function getNotes(studentId?: string, moduleId?: string) {
 export async function saveNote(note: any) {
   if (isUsingNeon()) {
     try {
-      const res = await neon.saveNote(note);
-      try { sqlite.saveNote(note); } catch {}
-      return res;
+      return await neon.saveNote(note);
     } catch (e) {
       console.warn("[DB] Neon error writing note:", e);
     }
@@ -266,7 +256,6 @@ export async function deleteNote(id: string) {
   if (isUsingNeon()) {
     try {
       await neon.deleteNote(id);
-      try { sqlite.deleteNote(id); } catch {}
       return { success: true };
     } catch (e) {
       console.warn("[DB] Neon error deleting note:", e);
@@ -290,9 +279,7 @@ export async function getAnnouncements() {
 export async function saveAnnouncement(ann: any) {
   if (isUsingNeon()) {
     try {
-      const res = await neon.saveAnnouncement(ann);
-      try { sqlite.saveAnnouncement(ann); } catch {}
-      return res;
+      return await neon.saveAnnouncement(ann);
     } catch (e) {
       console.warn("[DB] Neon error writing announcement:", e);
     }
@@ -304,7 +291,6 @@ export async function deleteAnnouncement(id: string) {
   if (isUsingNeon()) {
     try {
       await neon.deleteAnnouncement(id);
-      try { sqlite.deleteAnnouncement(id); } catch {}
       return { success: true };
     } catch (e) {
       console.warn("[DB] Neon error deleting announcement:", e);
@@ -328,9 +314,7 @@ export async function getTeacherStudentSummaries() {
 export async function upsertTeacherStudentSummary(summary: any) {
   if (isUsingNeon()) {
     try {
-      const res = await neon.upsertTeacherStudentSummary(summary);
-      try { sqlite.upsertTeacherStudentSummary(summary); } catch {}
-      return res;
+      return await neon.upsertTeacherStudentSummary(summary);
     } catch (e) {
       console.warn("[DB] Neon error writing summary:", e);
     }
@@ -342,7 +326,6 @@ export async function deleteTeacherStudentSummary(id: string) {
   if (isUsingNeon()) {
     try {
       await neon.deleteTeacherStudentSummary(id);
-      try { sqlite.deleteTeacherStudentSummary(id); } catch {}
       return { success: true };
     } catch (e) {
       console.warn("[DB] Neon error deleting summary:", e);

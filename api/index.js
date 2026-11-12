@@ -1616,12 +1616,7 @@ async function getStudentById3(id) {
 async function upsertStudent3(student) {
   if (isUsingNeon()) {
     try {
-      const neonRes = await upsertStudent2(student);
-      try {
-        upsertStudent(student);
-      } catch {
-      }
-      return neonRes;
+      return await upsertStudent2(student);
     } catch (e) {
       console.warn("[DB] Neon error writing student:", e);
     }
@@ -1632,10 +1627,6 @@ async function deleteStudentById3(id) {
   if (isUsingNeon()) {
     try {
       await deleteStudentById2(id);
-      try {
-        deleteStudentById(id);
-      } catch {
-      }
       return { success: true };
     } catch (e) {
       console.warn("[DB] Neon error deleting student:", e);
@@ -1666,12 +1657,7 @@ async function getTeacherById3(id) {
 async function upsertTeacher3(teacher) {
   if (isUsingNeon()) {
     try {
-      const neonRes = await upsertTeacher2(teacher);
-      try {
-        upsertTeacher(teacher);
-      } catch {
-      }
-      return neonRes;
+      return await upsertTeacher2(teacher);
     } catch (e) {
       console.warn("[DB] Neon error writing teacher:", e);
     }
@@ -1682,10 +1668,6 @@ async function deleteTeacherById3(id) {
   if (isUsingNeon()) {
     try {
       await deleteTeacherById2(id);
-      try {
-        deleteTeacherById(id);
-      } catch {
-      }
       return { success: true };
     } catch (e) {
       console.warn("[DB] Neon error deleting teacher:", e);
@@ -1706,12 +1688,7 @@ async function getAllQuizAttempts3(studentId, moduleId) {
 async function saveQuizAttempt3(attempt, studentProfile) {
   if (isUsingNeon()) {
     try {
-      const res = await saveQuizAttempt2(attempt, studentProfile);
-      try {
-        saveQuizAttempt(attempt, studentProfile);
-      } catch {
-      }
-      return res;
+      return await saveQuizAttempt2(attempt, studentProfile);
     } catch (e) {
       console.warn("[DB] Neon error writing quiz attempt:", e);
     }
@@ -1731,12 +1708,7 @@ async function getNotes3(studentId, moduleId) {
 async function saveNote3(note) {
   if (isUsingNeon()) {
     try {
-      const res = await saveNote2(note);
-      try {
-        saveNote(note);
-      } catch {
-      }
-      return res;
+      return await saveNote2(note);
     } catch (e) {
       console.warn("[DB] Neon error writing note:", e);
     }
@@ -1747,10 +1719,6 @@ async function deleteNote3(id) {
   if (isUsingNeon()) {
     try {
       await deleteNote2(id);
-      try {
-        deleteNote(id);
-      } catch {
-      }
       return { success: true };
     } catch (e) {
       console.warn("[DB] Neon error deleting note:", e);
@@ -1771,12 +1739,7 @@ async function getAnnouncements3() {
 async function saveAnnouncement3(ann) {
   if (isUsingNeon()) {
     try {
-      const res = await saveAnnouncement2(ann);
-      try {
-        saveAnnouncement(ann);
-      } catch {
-      }
-      return res;
+      return await saveAnnouncement2(ann);
     } catch (e) {
       console.warn("[DB] Neon error writing announcement:", e);
     }
@@ -1787,10 +1750,6 @@ async function deleteAnnouncement3(id) {
   if (isUsingNeon()) {
     try {
       await deleteAnnouncement2(id);
-      try {
-        deleteAnnouncement(id);
-      } catch {
-      }
       return { success: true };
     } catch (e) {
       console.warn("[DB] Neon error deleting announcement:", e);
@@ -1811,12 +1770,7 @@ async function getTeacherStudentSummaries3() {
 async function upsertTeacherStudentSummary3(summary) {
   if (isUsingNeon()) {
     try {
-      const res = await upsertTeacherStudentSummary2(summary);
-      try {
-        upsertTeacherStudentSummary(summary);
-      } catch {
-      }
-      return res;
+      return await upsertTeacherStudentSummary2(summary);
     } catch (e) {
       console.warn("[DB] Neon error writing summary:", e);
     }
@@ -1827,10 +1781,6 @@ async function deleteTeacherStudentSummary3(id) {
   if (isUsingNeon()) {
     try {
       await deleteTeacherStudentSummary2(id);
-      try {
-        deleteTeacherStudentSummary(id);
-      } catch {
-      }
       return { success: true };
     } catch (e) {
       console.warn("[DB] Neon error deleting summary:", e);
