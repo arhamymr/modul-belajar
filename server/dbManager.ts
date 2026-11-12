@@ -6,14 +6,6 @@ let initPromise: Promise<void> | null = null;
 
 // Initialize appropriate database on boot
 export async function initAppDatabase() {
-  // Always initialize SQLite so local storage is available as instant fallback
-  try {
-    sqlite.initSQLiteDatabase();
-  } catch (err) {
-    console.warn("[DB] SQLite init note:", err);
-  }
-
-  // If Neon connection string is provided, initialize Neon tables
   if (neon.isNeonConfigured()) {
     try {
       console.log("[DB] Neon DATABASE_URL detected. Initializing Neon PostgreSQL schemas...");
@@ -21,10 +13,16 @@ export async function initAppDatabase() {
       neonInitialized = true;
       console.log("[DB] Neon Serverless PostgreSQL successfully initialized.");
     } catch (err: any) {
-      console.error("[DB] Failed to connect to Neon PostgreSQL, falling back to SQLite:", err.message);
-      neonInitialized = false;
+      console.error("[DB] Neon PostgreSQL init warning:", err.message);
+      // Even if DDL check had a hiccup, neon is configured so keep using it
+      neonInitialized = true;
     }
   } else {
+    try {
+      sqlite.initSQLiteDatabase();
+    } catch (err) {
+      console.warn("[DB] SQLite init note:", err);
+    }
     console.log("[DB] SQLite persistent database active. Ready for Neon DATABASE_URL.");
   }
 }
@@ -39,7 +37,7 @@ export function ensureDatabaseReady(): Promise<void> {
 }
 
 export function isUsingNeon(): boolean {
-  return neon.isNeonConfigured() && neonInitialized;
+  return neon.isNeonConfigured();
 }
 
 // Unified Status

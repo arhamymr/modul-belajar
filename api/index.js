@@ -1504,11 +1504,6 @@ async function deleteTeacherStudentSummary2(id) {
 var neonInitialized = false;
 var initPromise = null;
 async function initAppDatabase() {
-  try {
-    initSQLiteDatabase();
-  } catch (err) {
-    console.warn("[DB] SQLite init note:", err);
-  }
   if (isNeonConfigured()) {
     try {
       console.log("[DB] Neon DATABASE_URL detected. Initializing Neon PostgreSQL schemas...");
@@ -1516,10 +1511,15 @@ async function initAppDatabase() {
       neonInitialized = true;
       console.log("[DB] Neon Serverless PostgreSQL successfully initialized.");
     } catch (err) {
-      console.error("[DB] Failed to connect to Neon PostgreSQL, falling back to SQLite:", err.message);
-      neonInitialized = false;
+      console.error("[DB] Neon PostgreSQL init warning:", err.message);
+      neonInitialized = true;
     }
   } else {
+    try {
+      initSQLiteDatabase();
+    } catch (err) {
+      console.warn("[DB] SQLite init note:", err);
+    }
     console.log("[DB] SQLite persistent database active. Ready for Neon DATABASE_URL.");
   }
 }
@@ -1532,7 +1532,7 @@ function ensureDatabaseReady() {
   return initPromise;
 }
 function isUsingNeon() {
-  return isNeonConfigured() && neonInitialized;
+  return isNeonConfigured();
 }
 async function getUnifiedDatabaseStatus() {
   const sqliteStatus = getDatabaseStatus();
