@@ -1,15 +1,17 @@
 import { neon } from "@neondatabase/serverless";
 
+const DEFAULT_NEON_URL = "postgresql://neondb_owner:npg_qxRIlr7TSd0m@ep-delicate-bread-b5sohl98-pooler.c-7.us-east-2.aws.neon.tech/neondb?sslmode=require&channel_binding=require";
+
 // Helper to check if Neon connection string is present
 export function getNeonConnectionString(): string | null {
-  let url = (process.env.DATABASE_URL || process.env.NEON_DATABASE_URL || "").trim();
+  let url = (process.env.DATABASE_URL || process.env.NEON_DATABASE_URL || DEFAULT_NEON_URL).trim();
   if ((url.startsWith('"') && url.endsWith('"')) || (url.startsWith("'") && url.endsWith("'"))) {
     url = url.slice(1, -1).trim();
   }
   if (url && (url.startsWith("postgres://") || url.startsWith("postgresql://"))) {
     return url;
   }
-  return null;
+  return DEFAULT_NEON_URL;
 }
 
 export function isNeonConfigured(): boolean {

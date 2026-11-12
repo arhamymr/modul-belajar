@@ -775,15 +775,16 @@ function resetDatabase() {
 
 // server/neonDb.ts
 import { neon } from "@neondatabase/serverless";
+var DEFAULT_NEON_URL = "postgresql://neondb_owner:npg_qxRIlr7TSd0m@ep-delicate-bread-b5sohl98-pooler.c-7.us-east-2.aws.neon.tech/neondb?sslmode=require&channel_binding=require";
 function getNeonConnectionString() {
-  let url = (process.env.DATABASE_URL || process.env.NEON_DATABASE_URL || "").trim();
+  let url = (process.env.DATABASE_URL || process.env.NEON_DATABASE_URL || DEFAULT_NEON_URL).trim();
   if (url.startsWith('"') && url.endsWith('"') || url.startsWith("'") && url.endsWith("'")) {
     url = url.slice(1, -1).trim();
   }
   if (url && (url.startsWith("postgres://") || url.startsWith("postgresql://"))) {
     return url;
   }
-  return null;
+  return DEFAULT_NEON_URL;
 }
 function isNeonConfigured() {
   return getNeonConnectionString() !== null;
