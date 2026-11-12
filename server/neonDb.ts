@@ -2,9 +2,12 @@ import { neon } from "@neondatabase/serverless";
 
 // Helper to check if Neon connection string is present
 export function getNeonConnectionString(): string | null {
-  const url = process.env.DATABASE_URL || process.env.NEON_DATABASE_URL || "";
-  if (url.trim() && (url.startsWith("postgres://") || url.startsWith("postgresql://"))) {
-    return url.trim();
+  let url = (process.env.DATABASE_URL || process.env.NEON_DATABASE_URL || "").trim();
+  if ((url.startsWith('"') && url.endsWith('"')) || (url.startsWith("'") && url.endsWith("'"))) {
+    url = url.slice(1, -1).trim();
+  }
+  if (url && (url.startsWith("postgres://") || url.startsWith("postgresql://"))) {
+    return url;
   }
   return null;
 }
